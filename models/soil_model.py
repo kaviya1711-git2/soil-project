@@ -909,85 +909,50 @@ SoilCategory.YELLOW: {
 # ─────────────────────────────────────────────────────────────────────────────
 # SOIL CLASSIFIER
 # ─────────────────────────────────────────────────────────────────────────────
-
 class SoilAIModel:
-    def __init__(self, model_path="soil_model.h5"):
+    def __init__(self, model_path="soil_model.tflite"):
         import tensorflow as tf
-        import h5py
-        import json
-        from tensorflow.keras.models import load_model
 
-        # 1. மாடல் கன்பிக் (Config) திருத்தம்
-        try:
-            with h5py.File(model_path, 'r+') as f:
-                if 'model_config' in f.attrs:
-                    # மெட்டாடேட்டாவிலிருந்து JSON-ஐ எடுக்கிறோம்
-                    model_config_raw = f.attrs['model_config']
-                    if isinstance(model_config_raw, bytes):
-                        model_config_raw = model_config_raw.decode('utf-8')
-                    
-                    config = json.loads(model_config_raw)
-                    
-                    def patch_input_layer(obj):
-                        if isinstance(obj, dict):
-                            # Dense லேயர் பிரச்சனையை சரி செய்கிறோம்
-                            obj.pop('quantization_config', None)
-                            
-                            # InputLayer-ல் 'shape' அல்லது 'batch_shape' இல்லைனா சேர்க்கிறோம்
-                            if obj.get('class_name') == 'InputLayer':
-                                layer_config = obj.get('config', {})
-                                if 'batch_shape' not in layer_config and 'shape' not in layer_config:
-                                    layer_config['batch_shape'] = [None, 224, 224, 3]
-                                    obj['config'] = layer_config
-                            
-                            # Recursive-ஆக எல்லா இடத்திலும் தேடுகிறோம்
-                            for key in obj:
-                                patch_input_layer(obj[key])
-                        elif isinstance(obj, list):
-                            for item in obj:
-                                patch_input_layer(item)
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
 
-                    patch_input_layer(config)
-                    # திருத்தப்பட்ட கன்பிக்கை மீண்டும் ஃபைலில் எழுதுகிறோம்
-                    f.attrs['model_config'] = json.dumps(config).encode('utf-8')
-            print("✓ Soil model patched for InputLayer and Dense layers.")
-        except Exception as e:
-            print(f"! Pre-processing failed: {e}")
-
-        # 2. இப்போது மாடலை லோடு செய்கிறோம்
-        try:
-            self.model = load_model(model_path, compile=False)
-        except Exception as e:
-            print(f"Loading failed again: {e}")
-            raise e
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
 
         self.classes = [
-          "Alluvial Soil",
-          "Black Soil",
-          "Cinder Soil",
-          "Clay Soil",
-          "Laterite Soil",
-          "Peat Soil",
-          "Red Soil",
-          "Yellow Soil"
+            "Alluvial Soil",
+            "Black Soil",
+            "Cinder Soil",
+            "Clay Soil",
+            "Laterite Soil",
+            "Peat Soil",
+            "Red Soil",
+            "Yellow Soil"
         ]
 
     def predict(self, image_path):
+        from PIL import Image
+        import numpy as np
 
         img = Image.open(image_path).convert("RGB")
-        img = img.resize((224,224))
+        img = img.resize((224, 224))
 
-        arr = np.array(img) / 255.0
+        arr = np.array(img, dtype=np.float32) / 255.0
         arr = np.expand_dims(arr, axis=0)
 
-        pred = self.model.predict(arr)
+        # Set input
+        self.interpreter.set_tensor(self.input_details[0]['index'], arr)
 
-        idx = np.argmax(pred)
+        # Run inference
+        self.interpreter.invoke()
 
-        soil = self.classes[idx]
-        confidence = float(np.max(pred))
+        # Get output
+        output = self.interpreter.get_tensor(self.output_details[0]['index'])
 
-        return soil, confidence
+        idx = np.argmax(output)
+        confidence = float(np.max(output))
+
+        return self.classes[idx], confidence
 
 class SoilClassifier:
     """
