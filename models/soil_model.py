@@ -1336,7 +1336,7 @@ class SoilModel:
         self.cropper     = CropAdvisor()
         self.id_gen      = SoilIDGenerator()
         self.reader      = ImageColorReader()
-        model_path = os.path.join(os.path.dirname(__file__), "soil_model.h5")
+        model_path = os.path.join(os.path.dirname(__file__), "soil_model.tflite")
         self.ai_model = SoilAIModel(model_path)
 
     # ── PUBLIC API ────────────────────────────────────────────────────────────
