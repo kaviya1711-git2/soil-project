@@ -1,0 +1,31 @@
+# Core Flask
+Flask==3.0.0
+Flask-Cors
+Flask-SQLAlchemy==3.1.1
+
+# Database
+PyMySQL==1.1.0
+
+# Image processing
+pillow==10.2.0
+numpy==1.24.3 
+
+# PDF generation
+reportlab==4.0.8
+qrcode[pil]==7.4.2
+
+# Security
+Werkzeug==3.0.1
+
+# Utilities
+python-dotenv==1.0.0
+
+# ML
+tensorflow>=2.16.1
+keras>=3.0.0
+
+# AI
+google-generativeai==0.7.2
+
+# Production server
+gunicorn==21.2.0
