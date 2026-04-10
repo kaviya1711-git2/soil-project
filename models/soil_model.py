@@ -23,7 +23,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
 from enum import Enum
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 import numpy as np
 from PIL import Image
 import json
