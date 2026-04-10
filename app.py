@@ -12,23 +12,12 @@ from models.database import db, init_db
 from flask import redirect
 import gdown
 
-MODEL_PATH = "models/soil_model.h5"
+import tensorflow as tf
 
-# Download model from Google Drive if not exists
-if not os.path.exists(MODEL_PATH):
-    os.makedirs("models", exist_ok=True)
-    url = "https://drive.google.com/uc?id=1lqU9LG8AP3Q_NCxcPeshpxk5zeS6GxRq"
-    gdown.download(url, MODEL_PATH, quiet=False)
+MODEL_PATH = "models/soil_model.tflite"
 
-# Lazy load model (memory safe)
-model = None
-
-def get_model():
-    global model
-    if model is None:
-        from tensorflow.keras.models import load_model
-        model = load_model(MODEL_PATH)
-    return model
+interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+interpreter.allocate_tensors()
 
 # Configure logging
 logging.basicConfig(
