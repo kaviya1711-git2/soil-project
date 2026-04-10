@@ -27,7 +27,24 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 import json
+import requests
 
+def download_model():
+    url = "https://drive.google.com/uc?export=download&id=1lqU9LG8AP3Q_NCxcPeshpxk5zeS6GxRq"
+    model_path = "soil_model.h5"
+
+    if not os.path.exists(model_path):
+        print("Downloading model...")
+        r = requests.get(url, stream=True)
+
+        with open(model_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+        print("Model downloaded!")
+
+    return model_path
 
 def get_soil_layers(soil_type):
 
