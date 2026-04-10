@@ -10,6 +10,25 @@ from flask_cors import CORS
 from config import config
 from models.database import db, init_db
 from flask import redirect
+import gdown
+
+MODEL_PATH = "models/soil_model.h5"
+
+# Download model from Google Drive if not exists
+if not os.path.exists(MODEL_PATH):
+    os.makedirs("models", exist_ok=True)
+    url = "https://drive.google.com/uc?id=1lqU9LG8AP3Q_NCxcPeshpxk5zeS6GxRq"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+# Lazy load model (memory safe)
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        from tensorflow.keras.models import load_model
+        model = load_model(MODEL_PATH)
+    return model
 
 # Configure logging
 logging.basicConfig(
