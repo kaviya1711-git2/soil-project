@@ -19,11 +19,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'sv360-secret-key-change-in-production'
     
    # Database
-    MYSQL_HOST = "127.0.0.1"
-    MYSQL_PORT = 3306
+    MYSQL_HOST = "${{RAILWAY_PRIVATE_DOMAIN}}"
+    MYSQL_PORT = root
     MYSQL_USER = "root"
-    MYSQL_PASSWORD = ""
-    MYSQL_DB = "soil_vision_360"
+    MYSQL_PASSWORD = "OnWHlTqGcKkQlAohmibIuCzAKnKVPIYj"
+    MYSQL_DB = "railway"
 
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:@127.0.0.1:3306/soil_vision_360"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
